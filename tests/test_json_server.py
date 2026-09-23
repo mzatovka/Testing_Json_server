@@ -1,8 +1,25 @@
 import requests
+import pytest
+
+
 
 BASE_URL = "http://localhost:3000"
 
+@pytest.fixture
+def create_post():
+
+    payload = {
+            "title": "new",
+            "views": 0
+        }
     
+    response = requests.post(
+        f"{BASE_URL}/posts",
+        json=payload
+    )
+
+    return str(response.json()["id"])
+
 #TC-01   
 def test_get_all_posts():
     response = requests.get(f"{BASE_URL}/posts")
@@ -20,20 +37,20 @@ def test_get_all_posts():
         assert "views" in post
     
 #TC-02    
-def test_get_single_post():
-    response = requests.get(f"{BASE_URL}/posts/1")
+def test_get_single_post(create_post):
+    response = requests.get(f"{BASE_URL}/posts/"+create_post)
 
     assert response.status_code == 200
 
     post = response.json()
 
     assert isinstance(post, dict)
-    assert post["id"] == 1
+    assert str(post["id"]) == create_post
     
     
 #TC-03
 def test_get_post_not_found():
-    response = requests.get(f"{BASE_URL}/posts/9999")
+    response = requests.get(f"{BASE_URL}/posts/0")
 
     assert response.status_code == 404
     
@@ -59,14 +76,14 @@ def test_create_post():
     assert post["views"] == 0
     
 #TC-05    
-def test_update_post():
+def test_update_post(create_post):
     payload = {
         "title": "updated",
         "views": 500
     }
 
     response = requests.put(
-        f"{BASE_URL}/posts/1",
+        f"{BASE_URL}/posts/"+ create_post,
         json=payload
     )
 
@@ -74,13 +91,13 @@ def test_update_post():
 
     post = response.json()
 
-    assert post["id"] == 1
+    assert str(post["id"]) == create_post
     assert post["title"] == "updated"
     assert post["views"] == 500
     
 #TC-06
-def test_patch_post():
-    get_response = requests.get(f"{BASE_URL}/posts/1")
+def test_patch_post(create_post):
+    get_response = requests.get(f"{BASE_URL}/posts/"+create_post)
 
     assert get_response.status_code == 200
 
@@ -88,7 +105,7 @@ def test_patch_post():
     original_title = original_post["title"]
 
     response = requests.patch(
-        f"{BASE_URL}/posts/1",
+        f"{BASE_URL}/posts/"+create_post,
         json={"views": 999}
     )
 
@@ -101,16 +118,16 @@ def test_patch_post():
     assert updated_post["views"] == 999
     
     
-#TC-06
-def test_delete_post():
+#TC-07
+def test_delete_post(create_post):
     delete_response = requests.delete(
-        f"{BASE_URL}/posts/1"
+        f"{BASE_URL}/posts/"+create_post
     )
 
     assert delete_response.status_code in [200, 204]
 
     get_response = requests.get(
-        f"{BASE_URL}/posts/1"
+        f"{BASE_URL}/posts/"+create_post
     )
 
     assert get_response.status_code == 404
