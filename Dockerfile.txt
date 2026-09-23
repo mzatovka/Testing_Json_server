@@ -5,6 +5,9 @@ WORKDIR /app
 # Устанавливаем оригинальный json-server глобально
 RUN npm install -g json-server
 
+RUN mkdir -p fixtures
+
+
 EXPOSE 3000
 
 # Запускаем сервер, указывая на тестовый файл в папке fixtures
